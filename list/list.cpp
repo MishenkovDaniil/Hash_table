@@ -22,13 +22,14 @@ void list_ctor (List *list, int capacity, unsigned int *err)
 
         list_realloc (list, 0);
 
-        list->size = INITIAL;
+        list->size = INITIAL_SIZE;
 
-        list->elems[NULL_ELEM].data = list->elems[NULL_ELEM].prev = list->elems[NULL_ELEM].next = INITIAL;
+        list->elems[NULL_ELEM].data = INITIAL_DATA;
+        list->elems[NULL_ELEM].prev = list->elems[NULL_ELEM].next = INITIAL;
 
         list->free = 1;
 
-        fill_list (list, INITIAL, err);
+        fill_list (list, INITIAL_SIZE, err);
     }
 
     check_list (list, err);
@@ -91,7 +92,7 @@ list_elem_t list_remove (List *list, int remove_place, unsigned int *err)
         set_error_bit (err, LIST_INCORRECT_REMOVE_PLACE);
         list_dump (list, err);
 
-        return POISON;
+        return POISON_DATA;
     }
     else if (list->size == 0)
     {
@@ -100,18 +101,18 @@ list_elem_t list_remove (List *list, int remove_place, unsigned int *err)
         set_error_bit (err, LIST_REMOVE_FROM_EMPTY_LIST);
         list_dump (list, err);
 
-        return POISON;
+        return POISON_DATA;
     }
 
     check_list (list, err);
 
-    int return_value = list->elems[remove_place].data;
+    list_elem_t return_value = list->elems[remove_place].data;
 
     list->elems[list->elems[remove_place].prev].next = list->elems[remove_place].next;
     list->elems[list->elems[remove_place].next].prev = list->elems[remove_place].prev;
 
 
-    list->elems[remove_place].data = POISON;
+    list->elems[remove_place].data = POISON_DATA;
     list->elems[remove_place].next = list->free;
     list->elems[remove_place].prev = EMPTY;
 
@@ -176,7 +177,7 @@ int find_logic_number (List *list, int phys_index, unsigned int *err)
 
         List_elem elem = list->elems[phys_index];
 
-        if (elem.data != POISON && elem.prev != EMPTY)
+        if (elem.data != POISON_DATA && elem.prev != EMPTY)
         {
             while (elem.prev)
             {
@@ -211,7 +212,7 @@ int find_number (List *list, int phys_index, unsigned int *err)
 
         List_elem elem = list->elems[phys_index];
 
-        if (elem.data != POISON && elem.prev != EMPTY)
+        if (elem.data != POISON_DATA && elem.prev != EMPTY)
         {
             while (elem.prev)
             {
@@ -230,7 +231,7 @@ int find_number (List *list, int phys_index, unsigned int *err)
     else
     {
         List new_list = {};
-        new_list.elems[NULL_ELEM].data = POISON;
+        new_list.elems[NULL_ELEM].data = POISON_DATA;
     }
 
     return 0;
@@ -266,13 +267,13 @@ int linearize_list (List *list, unsigned int *err)
     temp_elems[logic_index - 1].next = NULL_ELEM;
     temp_elems[NULL_ELEM].prev = logic_index - 1;
     temp_elems[NULL_ELEM].next = 1;
-    temp_elems[NULL_ELEM].data = POISON;
+    temp_elems[NULL_ELEM].data = POISON_DATA;
 
     list->free = logic_index;
 
     while (logic_index < list->capacity)
     {
-        temp_elems[logic_index].data = POISON;
+        temp_elems[logic_index].data = POISON_DATA;
         temp_elems[logic_index].next = logic_index + 1;
         temp_elems[logic_index].prev = EMPTY;
 
@@ -293,7 +294,7 @@ void fill_list (List *list, int start, unsigned int *err)
 {
     for (int index = start; index < list->capacity; index++)
     {
-        list->elems[index].data = POISON;
+        list->elems[index].data = POISON_DATA;
         list->elems[index].prev = EMPTY;
 
         if (index == list->capacity - 1)
@@ -427,7 +428,7 @@ void list_dump (List *list, unsigned int *err)
 
     char cmd[100] = {};
 
-    sprintf (cmd, "Dot list_graph -T png -o dot%d.png", PNG_FILE_NUMBER);
+    sprintf (cmd, "dot list_graph -T png -o dot%d.png", PNG_FILE_NUMBER);
     printf ("%s", cmd);
     system (cmd);
 
@@ -452,13 +453,13 @@ void make_graph (List *list, FILE *list_graph)
         if (list->elems[idx].prev == -1)
         {
             fprintf (list_graph, "\tlabel_%d [shape = record, style = \"filled\", fillcolor = \"salmon1\","
-                                 "label = \"%d\\n | d[%p]\\n | n[%d]\\n | p[%d](empty)\"];\n ",
+                                 "label = \"%d\\n | d[%x]\\n | n[%d]\\n | p[%d](empty)\"];\n ",
                                  idx, idx, list->elems[idx].data, list->elems[idx].next, list->elems[idx].prev);
         }
         else
         {
             fprintf (list_graph, "\tlabel_%d [shape = record, style = \"filled\", fillcolor = \"lightblue\","
-                                 "label = \"%d\\n | d[%d]\\n | n[%d]\\n | P [%d]\"];\n ",
+                                 "label = \"%d\\n | d[%x]\\n | n[%d]\\n | P [%d]\"];\n ",
                                  idx, idx, list->elems[idx].data, list->elems[idx].next, list->elems[idx].prev);
         }
         idx++;
@@ -507,7 +508,7 @@ void dump_elems (List *list, unsigned int *err)
 {
     for (int index = 0; index < list->capacity; index++)
     {
-        fprintf (list_log, "idx[%d]\t data [%d]\t next is [%d]\t prev is [%d]\n",
+        fprintf (list_log, "idx[%d]\t data [%x]\t next is [%d]\t prev is [%d]\n",
                  index, list->elems[index].data, list->elems[index].next, list->elems[index].prev);
     }
 }

@@ -8,12 +8,15 @@
 // Fix
 static unsigned int ERRNO = 0;
 
-typedef int list_elem_t;
+typedef char *list_elem_t;
 typedef unsigned long long canary_t;
 
-static const int INITIAL = 0;
+static const size_t INITIAL_SIZE = 0;
+static const size_t INITIAL = 0;
+static const list_elem_t INITIAL_DATA = 0;
 static const int NULL_ELEM = 0;
 static const int EMPTY = -1;
+static const list_elem_t POISON_DATA = (list_elem_t)0xDEADBEEF;
 static const int POISON = 0xDEADBEEF;
 static const canary_t CANARY = 0xAB8EACAAAB8EACAA;
 static const int CANARY_NUM = 2;
