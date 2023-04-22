@@ -29,7 +29,7 @@ Hash *Hash_ctor (size_t size, size_t (*hash_func)(char *string), size_t list_cap
 void Hash_insert (Hash *hash, char *string)
 {
     assert (hash && string);
-    fprintf (stderr, "%p\n",hash->hash_func);
+
     size_t num = ((hash->hash_func)(string)) % hash->size;
 
     if (!(hash->arr[num]))
@@ -39,7 +39,7 @@ void Hash_insert (Hash *hash, char *string)
         list_ctor (hash->arr[num], hash->list_capacity);
     }
 
-    list_insert (hash->arr[num], hash->arr[num]->size, 5);
+    list_insert (hash->arr[num], hash->arr[num]->size, string);
 }
 
 void Hash_dtor (Hash *hash)
@@ -98,12 +98,13 @@ void dump_hash_lists (List **arr, size_t arr_size, FILE *dump_file)
     {
         if (arr[list_num])
         {
-            // uint err = 0;
-            // check_list (arr[list_num], &err);
-            // if (err)
-            // {
-            //     fprintf (dump_file, "ERROR: err value is %u", err);
-            // }
+            uint err = 0;
+            check_list (arr[list_num], &err);
+            list_dump (arr[list_num], &err);
+            if (err)
+            {
+                fprintf (dump_file, "ERROR: err value is %u", err);
+            }
         }
         else 
         {
