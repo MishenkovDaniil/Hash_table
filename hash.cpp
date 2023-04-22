@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "list.h"
+#include "list/list.h"
 #include "hash.h"
 
 Hash *Hash_ctor (size_t size, size_t (*hash_func)(char *string), size_t list_capacity)
