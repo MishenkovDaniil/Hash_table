@@ -1,11 +1,12 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "list/list.h"
 #include "hash.h"
 
-Hash *Hash_ctor (size_t size, size_t (*hash_func)(char *string), size_t list_capacity)
+Hash *Hash_ctor (size_t size, size_t (*hash_func)(char *string), size_t init_list_capacity)
 {
     if (size < 1)
     {
@@ -21,7 +22,7 @@ Hash *Hash_ctor (size_t size, size_t (*hash_func)(char *string), size_t list_cap
     
     hash->size = size;
     hash->hash_func = hash_func;
-    hash->list_capacity = list_capacity;
+    hash->init_list_capacity = init_list_capacity;
 
     return hash;
 }
@@ -30,16 +31,18 @@ void Hash_insert (Hash *hash, char *string)
 {
     assert (hash && string);
 
-    size_t num = ((hash->hash_func)(string)) % hash->size;
+    size_t hash_value = ((hash->hash_func)(string)) % hash->size;
 
-    if (!(hash->arr[num]))
+    List *insert_list = hash->arr[hash_value];
+    
+    if (!(insert_list))
     {
-        hash->arr[num] = (List *)calloc (1, sizeof (List));
+        hash->arr[hash_value] = insert_list = (List *)calloc (1, sizeof (List));
 
-        list_ctor (hash->arr[num], hash->list_capacity);
+        list_ctor (insert_list, hash->init_list_capacity);
     }
 
-    list_insert (hash->arr[num], hash->arr[num]->size, string);
+    list_insert (insert_list, hash->arr[hash_value]->size, string);//hash->arr[hash_value]->size
 }
 
 void Hash_dtor (Hash *hash)
@@ -82,8 +85,8 @@ void dump_hash (Hash *hash, FILE *dump_file)
     fprintf (dump_file, "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n"
                         "\\\\\\\\\\\\\\\\\\\\\\\\HASH DUMP\\\\\\\\\\\\\\\\\\\\\\\\\n"
                         "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\n\n");
-    fprintf (dump_file, "HASH = %p;\nLIST ARRAY = %p;\nLIST ARRAY SIZE = %lu;\nLIST CAPACITY = %lu.\n\n",
-                         hash, hash->arr, hash->size, hash->list_capacity);
+    fprintf (dump_file, "Hash = %p;\nList array = %p;\nList array size = %lu;\nInit list capacity = %lu.\n\n",
+                         hash, hash->arr, hash->size, hash->init_list_capacity);
 }
 
 void dump_hash_lists (List **arr, size_t arr_size, FILE *dump_file)
@@ -96,19 +99,49 @@ void dump_hash_lists (List **arr, size_t arr_size, FILE *dump_file)
 
     for (size_t list_num = 0; list_num < arr_size; ++list_num)
     {
-        if (arr[list_num])
+        List *cur_list = arr[list_num];
+
+        if (cur_list)
         {
             uint err = 0;
-            check_list (arr[list_num], &err);
-            list_dump (arr[list_num], &err);
+            check_list (cur_list, &err);
+            // list_dump (cur_list, &err);
+
+            fprintf (dump_file, "List %d: size = %lu\n\t\tcapacity = %lu.\n", list_num, cur_list->size, cur_list->capacity);
+
             if (err)
             {
-                fprintf (dump_file, "ERROR: err value is %u", err);
+                fprintf (dump_file, "Error: err value is %u", err);
             }
         }
         else 
         {
-            fprintf (dump_file, "list %d: nullptr;\n", list_num);
+            fprintf (dump_file, "List %d: nullptr;\n", list_num);
         }
     }
+}
+
+bool Hash_exists (Hash *hash, char *string)
+{
+    assert (hash && string);
+    
+    size_t hash_value = ((hash->hash_func)(string)) % hash->size;
+
+    List *insert_list = hash->arr[hash_value];
+
+    if (!(insert_list && insert_list->elems))
+        return false;
+
+    List_elem elem = insert_list->elems[1];
+
+    while (elem.data != nullptr && elem.data != POISON_DATA)
+    {
+        if (!(strcasecmp (elem.data, string)))
+        {
+            return true;
+        }
+        elem = insert_list->elems[elem.next];
+    }
+
+    return false;
 }
