@@ -1,3 +1,5 @@
+#include <nmmintrin.h>
+
 #include "hash_functions.h"
 
 static const size_t CRC_64_MASK = 0x42F0E1EBA9EA3693; 
@@ -100,6 +102,24 @@ size_t hash_crc64 (char *string)
     }
 
     return crc;
+}
+
+size_t hash_crc64_opt (char *string)
+{
+    size_t size = strlen (string);
+    size = size + sizeof (size_t) - size % sizeof (size_t);
+    size_t result = 0;
+
+    for (size_t iter = 0; iter < size / 8; ++iter)
+    {
+        size_t buf = 0;
+        memcpy (&buf, string, sizeof (size_t));
+
+        result = _mm_crc32_u64 (result, buf);
+        string += sizeof (size_t);
+    }
+
+    return result;
 }
 
 size_t inverse_crc (size_t crc, const size_t crc_mask)

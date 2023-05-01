@@ -12,6 +12,7 @@ size_t hash_ch_sum (char *string);
 size_t hash_rotr (char *string);
 size_t hash_rotl (char *string);
 size_t hash_crc64 (char *string);
+size_t hash_crc64_opt (char *string);
 
 size_t inverse_crc (size_t crc, const size_t crc_mask);
 size_t rotate_right (size_t val);
