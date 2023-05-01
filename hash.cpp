@@ -6,6 +6,8 @@
 #include "list/list.h"
 #include "hash.h"
 
+extern "C" int m_strcmp (const char *str1, const char *str2);
+
 Hash *Hash_ctor (size_t size, size_t (*hash_func)(char *string), size_t init_list_capacity)
 {
     if (size < 1)
@@ -70,12 +72,12 @@ void clear_hash_arr (List **arr, size_t size)
     }
 }
 
-void hash_dump (Hash *hash, FILE *dump_file)
+void hash_dump (Hash *hash, FILE *dump_file, FILE *csv_file)
 {
     assert (hash && dump_file);
 
     dump_hash (hash, dump_file);
-    dump_hash_lists (hash->arr, hash->size, dump_file);
+    dump_hash_lists (hash->arr, hash->size, dump_file, csv_file);
 }
 
 void dump_hash (Hash *hash, FILE *dump_file)
@@ -89,7 +91,7 @@ void dump_hash (Hash *hash, FILE *dump_file)
                          hash, hash->arr, hash->size, hash->init_list_capacity);
 }
 
-void dump_hash_lists (List **arr, size_t arr_size, FILE *dump_file)
+void dump_hash_lists (List **arr, size_t arr_size, FILE *dump_file, FILE *csv_file)
 {   
     assert (arr && arr_size && dump_file);
 
@@ -107,21 +109,56 @@ void dump_hash_lists (List **arr, size_t arr_size, FILE *dump_file)
             check_list (cur_list, &err);
             // list_dump (cur_list, &err);
 
-            fprintf (dump_file, "List %d: size = %lu\n\t\tcapacity = %lu.\n", list_num, cur_list->size, cur_list->capacity);
-
             if (err)
             {
                 fprintf (dump_file, "Error: err value is %u", err);
             }
+
+            fprintf (dump_file, "List %d: size = %lu\n\t\tcapacity = %lu.\n", list_num, cur_list->size, cur_list->capacity);
+            fprintf (csv_file, "%d,", cur_list->size);
         }
         else 
         {
             fprintf (dump_file, "List %d: nullptr;\n", list_num);
+            fprintf (csv_file, "0,");
         }
+        fflush (csv_file);
     }
+    fprintf (csv_file, "\n");
 }
 
 bool Hash_exists (Hash *hash, char *string)
+{
+    assert (hash && string);
+    
+    return hash_find (hash, string) ? true : false;
+
+/*    
+    size_t hash_value = ((hash->hash_func)(string)) % hash->size;
+
+    List *insert_list = hash->arr[hash_value];
+
+    if (!(insert_list && insert_list->elems))
+        return false;
+
+    List_elem elem = insert_list->elems[insert_list->elems[NULL_ELEM].next];
+
+    while (elem.data != nullptr && elem.data != POISON_DATA)
+    {
+        if (!(strcasecmp (elem.data, string)))
+        {
+            return true;
+        }
+        
+        elem = insert_list->elems[elem.next];
+    }
+
+    return false;
+*/
+}
+
+
+List_elem *hash_find (Hash *hash, char *string)
 {
     assert (hash && string);
     
@@ -130,18 +167,20 @@ bool Hash_exists (Hash *hash, char *string)
     List *insert_list = hash->arr[hash_value];
 
     if (!(insert_list && insert_list->elems))
-        return false;
+        return nullptr;
 
-    List_elem elem = insert_list->elems[1];
+    List_elem elem = insert_list->elems[insert_list->elems[NULL_ELEM].next];
 
     while (elem.data != nullptr && elem.data != POISON_DATA)
     {
-        if (!(strcasecmp (elem.data, string)))
+        if (!(m_strcmp (elem.data, string)))
         {
-            return true;
+            return &elem;
         }
+        
         elem = insert_list->elems[elem.next];
     }
 
-    return false;
+    return nullptr;
+
 }
