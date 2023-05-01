@@ -142,7 +142,7 @@ char *read_text (const char *filename)
         return nullptr;
     }
 
-    printf ("read %d from %d\n", status, filesize);
+    printf ("read %d from %lu\n", status, filesize);
 
     return buf;
 }
