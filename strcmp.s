@@ -33,12 +33,9 @@ m_strcmp:
             dec rsi 
                 
             mov al, byte [rdi]
-            ;sub al, byte [rsi]
             mov bl, byte [rsi]
             
             sub eax, ebx 
-
-            ;call m_strcmp_main
 
             push qword [ret_addr]
 
