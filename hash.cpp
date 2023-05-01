@@ -114,12 +114,12 @@ void dump_hash_lists (List **arr, size_t arr_size, FILE *dump_file, FILE *csv_fi
                 fprintf (dump_file, "Error: err value is %u", err);
             }
 
-            fprintf (dump_file, "List %d: size = %lu\n\t\tcapacity = %lu.\n", list_num, cur_list->size, cur_list->capacity);
+            fprintf (dump_file, "List %lu: size = %d\n\t\tcapacity = %d.\n", list_num, cur_list->size, cur_list->capacity);
             fprintf (csv_file, "%d,", cur_list->size);
         }
         else 
         {
-            fprintf (dump_file, "List %d: nullptr;\n", list_num);
+            fprintf (dump_file, "List %lu: nullptr;\n", list_num);
             fprintf (csv_file, "0,");
         }
         fflush (csv_file);
@@ -132,31 +132,7 @@ bool Hash_exists (Hash *hash, char *string)
     assert (hash && string);
     
     return hash_find (hash, string) ? true : false;
-
-/*    
-    size_t hash_value = ((hash->hash_func)(string)) % hash->size;
-
-    List *insert_list = hash->arr[hash_value];
-
-    if (!(insert_list && insert_list->elems))
-        return false;
-
-    List_elem elem = insert_list->elems[insert_list->elems[NULL_ELEM].next];
-
-    while (elem.data != nullptr && elem.data != POISON_DATA)
-    {
-        if (!(strcasecmp (elem.data, string)))
-        {
-            return true;
-        }
-        
-        elem = insert_list->elems[elem.next];
-    }
-
-    return false;
-*/
 }
-
 
 List_elem *hash_find (Hash *hash, char *string)
 {
@@ -169,18 +145,53 @@ List_elem *hash_find (Hash *hash, char *string)
     if (!(insert_list && insert_list->elems))
         return nullptr;
 
-    List_elem elem = insert_list->elems[insert_list->elems[NULL_ELEM].next];
+    List_elem *elem = &(insert_list->elems[insert_list->elems[NULL_ELEM].next]);
+    List_elem *result = (List_elem *)0xDEADBEEF;
 
-    while (elem.data != nullptr && elem.data != POISON_DATA)
+    while (1)
     {
-        if (!(m_strcmp (elem.data, string)))
+    asm(//".intel_syntax noprefix\n\t"
+             "test %1, %1\n\t" 
+             "je .end\n\t" 
+             "mov $3735928559, %%rbx\n\t" 
+             "cmp %1, %%rbx\n\t" 
+             "je .end\n\t" 
+             "mov %1, %%rsi\n\t"
+             "mov %2, %%rdi\n\t" 
+             "call m_strcmp\n\t"  
+             "test %%eax, %%eax\n\t"  
+             "je .ret_elem\n\t" 
+             "jmp .new_iter\n\t" 
+        ".ret_elem:\n\t"    
+            //  "mov %3, %%rax\n\t"  
+             "mov %3, %0\n\t"
+             "jmp .new_iter\n\t"//"leave\n\t"
+            //  "ret\n\t"  
+        ".end:  mov $0, %%rax\n\t" 
+             "mov 0, %0\n\t"
+            //  "leave\n\t"
+            //  "ret\n\t" 
+        ".new_iter:\n\t" 
+            :"=r"(result)
+            :"r"(elem->data), "r"(string), "r"(elem)
+            :"rax", "rbx", "rsi", "rdi");
+
+        if (result != (List_elem *)0xDEADBEEF)
         {
-            return &elem;
+            return result;
         }
-        
-        elem = insert_list->elems[elem.next];
+        elem = &(insert_list->elems[elem->next]);
     }
 
-    return nullptr;
+    // while (elem->data != nullptr && elem->data != POISON_DATA)
+    // {
+    //     if (!(strcmp (elem->data, string)))
+    //     {
+    //         return elem;
+    //     }
+        
+    //     elem = &(insert_list->elems[elem->next]);
+    // }
 
+    // return nullptr;
 }
