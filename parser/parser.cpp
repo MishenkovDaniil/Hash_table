@@ -39,6 +39,12 @@ Parsed_text *parce_text (const char *filename)
             ++cur_smbl_ptr;
             continue;
         }
+        
+        // if (is_contains (parsed_text->arr, buf, idx))
+        // {
+        //     cur_smbl_ptr += word_size;
+        //     continue;
+        // }
 
         parsed_text->arr[idx] = (char *)calloc (word_size + 1, sizeof (char));
         sprintf (parsed_text->arr[idx], "%s", buf);
@@ -60,6 +66,21 @@ Parsed_text *parce_text (const char *filename)
     
     return parsed_text;
 }
+
+// bool is_contains (char **word_arr, const char *word, const size_t size)
+// {
+//     assert (word_arr && word);
+
+//     for (size_t idx = 0; idx < size; ++idx)
+//     {
+//         if (!(strcasecmp (word_arr[idx], word)))
+//         {
+//             return true;
+//         }
+//     }
+
+//     return false;
+// }
 
 int realloc_text (Parsed_text *parsed_text)
 {

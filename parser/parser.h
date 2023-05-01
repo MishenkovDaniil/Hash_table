@@ -27,7 +27,7 @@ void parced_text_dtor (Parsed_text *parced_text);
 /// private 
 void parced_arr_dtor (char **arr, size_t size);
 int realloc_text (Parsed_text *parced_text);
-
+bool is_contains (char **word_arr, const char *word, const size_t size);
 
 char *read_text (const char *filename);
 size_t get_file_size (const char *filename);
