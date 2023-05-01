@@ -32,7 +32,9 @@ void list_ctor (List *list, int capacity, unsigned int *err)
         fill_list (list, INITIAL_SIZE, err);
     }
 
+    #ifdef DEBUG 
     check_list (list, err);
+    #endif
 }
 
 int list_insert (List *list, int put_place, list_elem_t value, unsigned int *err)
@@ -40,7 +42,9 @@ int list_insert (List *list, int put_place, list_elem_t value, unsigned int *err
     assert (list);
     assert (err);
 
+    #ifdef DEBUG 
     check_list (list, err);
+    #endif
 
     list_realloc (list, list->capacity);
     int insert_index = list->free;
@@ -50,7 +54,9 @@ int list_insert (List *list, int put_place, list_elem_t value, unsigned int *err
     if (put_place > MAX_CAPACITY)
     {
         set_error_bit (err, LIST_INCORRECT_INSERT_PLACE);
+        #ifdef DEBUG 
         check_list (list, err);
+        #endif
 
         list->free = previous_free;
 
@@ -60,7 +66,9 @@ int list_insert (List *list, int put_place, list_elem_t value, unsigned int *err
     {
         set_error_bit (err, LIST_INSERT_ERROR);
 
+        #ifdef DEBUG 
         check_list (list, err);
+        #endif
 
         return POISON;
     }
@@ -76,7 +84,9 @@ int list_insert (List *list, int put_place, list_elem_t value, unsigned int *err
 
     (list->size)++;
 
+    #ifdef DEBUG 
     check_list (list, err);
+    #endif
 
     return insert_index;
 }
@@ -104,7 +114,9 @@ list_elem_t list_remove (List *list, int remove_place, unsigned int *err)
         return POISON_DATA;
     }
 
+    #ifdef DEBUG 
     check_list (list, err);
+    #endif
 
     list_elem_t return_value = list->elems[remove_place].data;
 
@@ -120,7 +132,9 @@ list_elem_t list_remove (List *list, int remove_place, unsigned int *err)
 
     (list->size)--;
 
+    #ifdef DEBUG 
     check_list (list, err);
+    #endif
 
     return return_value;
 }
@@ -285,7 +299,9 @@ int linearize_list (List *list, unsigned int *err)
     free (list->elems);
     list->elems = temp_elems;
 
+    #ifdef DEBUG 
     check_list (list, err);
+    #endif
 
     return 0;
 }
