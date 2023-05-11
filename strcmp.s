@@ -4,8 +4,8 @@ section .text
 
 global m_strcmp
 
-extern printf 
-extern strlen 
+; extern printf 
+; extern strlen 
 
 ;=============================================
 ;int strcmp (const char *str1, const char *str2)                               
@@ -15,10 +15,14 @@ extern strlen
 ;Destroys: rcx, rdi, rsi 
 ;--------------------------------------------
 m_strcmp: 
-            pop qword [ret_addr]
-    
-            mov rcx, rdi
-            call strlen
+            ; pop qword [ret_addr]
+
+            xor rax, rax
+            ;mov rcx, rdi
+            ; mov r9, rdi  
+            call m_strlen
+            ; mov rdi, r9 
+            sub rdi, rax 
 
             xor rcx, rcx  
             mov ecx, eax 
@@ -37,16 +41,35 @@ m_strcmp:
             
             sub eax, ebx 
 
-            push qword [ret_addr]
+            ; push qword [ret_addr]
 
             ret
 ;=============================================
 
 
 ;=============================================
+;int strlen (const char *str1)                               
+;--------------------------------------------
+;Entry: rdi = addr;
+;Exit: eax = result
+;Destroys: rdi, rcx 
 ;=============================================
+m_strlen:   
+            mov al, 0
+            ; mov rdi, rcx 
+            mov rcx, 0xff 
+
+            repne scasb 
+            
+            mov eax, 0xff 
+            sub eax, ecx 
+
+            ret 
+;=============================================
+
+
 section .data
 
-ret_addr    dq 0
+ret_addr        dq 0
 printing_str    db "hello %s %s", 0
 rsi_            dq 0 
