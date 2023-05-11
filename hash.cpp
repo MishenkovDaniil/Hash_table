@@ -151,85 +151,26 @@ List_elem *hash_find (Hash *hash, char *string)
 
     List_elem *elem = &(insert_list->elems[insert_list->elems[NULL_ELEM].next]);
     List_elem *result = (List_elem *)0xDEADBEEF;
-    
-    // while (1)
-    // {
-    //     // elem->data = "jj";
-    //     // string = "jj";
-    // asm(//".intel_syntax noprefix\n\t"
-    //          //"test %1, %1\n\t" 
-    //          "cmp $0, %1\n\t" 
-    //          "je .end\n\t" 
-    //          "mov $3735928559, %%rbx\n\t" 
-    //          "cmp %1, %%rbx\n\t" 
-    //          "je .end\n\t" 
-    //          "mov %2, %%rsi\n\t"
-    //          "mov %1, %%rdi\n\t" 
-    //          "call m_strcmp\n\t"  
-    //          //"test %%eax, %%eax\n\t"  
-    //          "cmp $0, %%eax\n\t"                
-    //          "je .ret_elem\n\t" 
-    //          "jmp .new_iter\n\t" 
-    //     ".ret_elem:\n\t"    
-    //         //  "mov %3, %%rax\n\t"  
-    //         //  "mov %3, %%rbx\n\t"
-    //         //  "mov %%rbx, %0\n\t"
-    //          "mov %3,%0\n\t"
-    //          "jmp .new_iter\n\t"//"leave\n\t"
-    //         //  "ret\n\t"  
-    //     ".end:  mov $0, %%rax\n\t"
-    //          "mov $0, %0\n\t" 
-    //          "xor %0, %0\n\t"
-    //         //  "leave\n\t"
-    //         //  "ret\n\t" 
-    //     ".new_iter:\n\t" 
-    //         :"=&r"(result)
-    //         :"r"((elem->data)), "r"(string), "r"(elem)
-    //         :"rax", "rbx", "rcx", "rsi", "rdi");
 
-    //     if (!result)
-    //     {
-    //         fprintf (stderr, "fds");
-    //         return nullptr;
-    //     }
-    //     if (result != (List_elem *)0xDEADBEEF)
-    //     {
-    //         // fprintf (stderr, "f");
-    //         // fprintf (stderr, "%d\n", result->next);
-    //         return result;
-    //     }
-
-    //     elem = &(insert_list->elems[elem->next]);
-    // }
-
-while (1)
+    while (1)
     {
     asm(".intel_syntax noprefix\n\t"
              "test %1, %1\n\t" 
-            //  "cmp $0, %1\n\t" 
              "je .end\n\t" 
-             "mov rbx, 0xDEADBEEF\n\t" 
+             "mov rbx, 0xDEADBEEF\n\t" /// rbx = POISON_DATA; 
              "cmp rbx, %[data]\n\t" 
              "je .end\n\t" 
              "mov rsi, %[data]\n\t"
              "mov rdi, %[str]\n\t" 
              "call m_strcmp\n\t"  
-             //"test %%eax, %%eax\n\t"  
-             "cmp eax, 0\n\t"                
+             "test %%eax, %%eax\n\t"  
              "je .ret_elem\n\t" 
              "jmp .new_iter\n\t" 
         ".ret_elem:\n\t"    
-            //  "mov %3, %%rax\n\t"  
-            //  "mov %3, %%rbx\n\t"
-            //  "mov %%rbx, %0\n\t"
              "mov %[res], %[elem]\n\t"
-             "jmp .new_iter\n\t"//"leave\n\t"
-            //  "ret\n\t"  
-        ".end:\n\t"//  mov $0, %%rax\n\t"
-            //  "mov $0, %0\n\t" 
+             "jmp .new_iter\n\t"
+        ".end:\n\t"
              "mov %[res], 0\n\t"
-            //  "leave\n\t"
-            //  "ret\n\t" 
         ".new_iter:\n\t" 
         ".att_syntax prefix"
             :[res] "+r"(result)
@@ -244,23 +185,15 @@ while (1)
         elem = &(insert_list->elems[elem->next]);
     }
     
-//     while (elem->data != nullptr && elem->data != POISON_DATA)
-//     {
-//         // clock_t t1 = clock ();
-//         if (!(m_strcmp (elem->data, string)))
-//         {
-//             return elem;
-//         }
-//         // clock_t t2 = clock ();
+////     while (elem->data != nullptr && elem->data != POISON_DATA)
+////     {
+////         if (!(m_strcmp (elem->data, string)))
+////         {
+////             return elem;
+////         }
+////
+////         elem = &(insert_list->elems[elem->next]);
+////     }
 
-//         // time += 1000*(double)(t2 - t1) / CLOCKS_PER_SEC;
-
-//         // if (++num == 3000000)
-//         // {
-//         //     printf ("\nstrcmp time %lf\n", time / 30000);
-//         // }
-//         elem = &(insert_list->elems[elem->next]);
-//     }
-
-//     return nullptr;
+////     return nullptr;
 }
