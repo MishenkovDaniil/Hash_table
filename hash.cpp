@@ -137,9 +137,6 @@ bool Hash_exists (Hash *hash, char *string)
 
 List_elem *hash_find (Hash *hash, char *string)
 {
-    // static double time = 0;
-    // static int num = 0;
-
     assert (hash && string);
     
     size_t hash_value = ((hash->hash_func)(string)) % hash->size;
@@ -154,28 +151,31 @@ List_elem *hash_find (Hash *hash, char *string)
 
     while (1)
     {
-    asm(".intel_syntax noprefix\n\t"
-             "test %1, %1\n\t" 
-             "je .end\n\t" 
+    asm volatile(".intel_syntax noprefix\n\t"
+             "test %[data], %[data]\n\t" 
+             "je .ret0\n\t" 
              "mov rbx, 0xDEADBEEF\n\t" /// rbx = POISON_DATA; 
              "cmp rbx, %[data]\n\t" 
-             "je .end\n\t" 
-             "mov rsi, %[data]\n\t"
-             "mov rdi, %[str]\n\t" 
-             "call m_strcmp\n\t"  
-             "test %%eax, %%eax\n\t"  
+             "je .ret0\n\t" 
+             "mov rdi, %[str]\n\t"
+             "mov rsi, %[data]\n\t" 
+             "call strcmp\n\t"  
+             "test eax, eax\n\t"  
              "je .ret_elem\n\t" 
              "jmp .new_iter\n\t" 
         ".ret_elem:\n\t"    
              "mov %[res], %[elem]\n\t"
-             "jmp .new_iter\n\t"
-        ".end:\n\t"
+             "jmp .end\n\t"
+        ".ret0:\n\t"
              "mov %[res], 0\n\t"
+             "jmp .end\n\t"
         ".new_iter:\n\t" 
+             "mov %[res], 0xDEADBEEF\n\t" 
+         ".end: \n\t"
         ".att_syntax prefix"
-            :[res] "+r"(result)
+            :[res] "=r"(result)
             :[data] "r"((elem->data)), [str] "r" (string), [elem] "r"(elem)
-            :"rax", "rbx", "rsi", "rdi");
+            :"rax", "rbx", "rcx", "rsi", "rdi", "cc", "memory");
 
         if (result != (List_elem *)0xDEADBEEF)
         {
@@ -185,15 +185,15 @@ List_elem *hash_find (Hash *hash, char *string)
         elem = &(insert_list->elems[elem->next]);
     }
     
-////     while (elem->data != nullptr && elem->data != POISON_DATA)
-////     {
-////         if (!(m_strcmp (elem->data, string)))
-////         {
-////             return elem;
-////         }
-////
-////         elem = &(insert_list->elems[elem->next]);
-////     }
+    // while (elem->data != nullptr && elem->data != POISON_DATA)
+    // {
+    //     if (!(strcmp (elem->data, string)))
+    //     {
+    //         return elem;
+    //     }
 
-////     return nullptr;
+    //     elem = &(insert_list->elems[elem->next]);
+    // }
+
+    // return nullptr;
 }
