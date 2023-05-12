@@ -5,66 +5,54 @@ section .text
 global m_strcmp
 
 ; extern printf 
-; extern strlen 
+extern strlen 
 
 ;=============================================
 ;int strcmp (const char *str1, const char *str2)                               
 ;--------------------------------------------
 ;Entry: rdi = addr: str1, rsi = addr: str2 
 ;Exit: eax = result
-;Destroys: rcx, rdi, rsi 
+;Destroys: ebx, rcx, rdi, rsi 
 ;--------------------------------------------
 m_strcmp: 
             ; pop qword [ret_addr]
 
             xor rax, rax
-            ;mov rcx, rdi
-            ; mov r9, rdi  
-            call m_strlen
-            ; mov rdi, r9 
-            sub rdi, rax 
 
-            xor rcx, rcx  
-            mov ecx, eax 
+            mov rcx, rdi
+            call strlen 
+
+            xor rcx, rcx
+            mov ecx, eax
             inc ecx  
 
-            repe cmpsb 
-            
             xor eax, eax 
             xor ebx, ebx 
 
-            dec rdi 
+.next:      
+            mov al, byte [rsi]
+            cmp al, byte [rdi]
+            jne .end 
+
+            inc rsi 
+            inc rdi
+
+            dec ecx 
+            test ecx, ecx 
+            jne .next 
+            ; loop .next 
+
             dec rsi 
-                
-            mov al, byte [rdi]
-            mov bl, byte [rsi]
+            dec rdi 
+.end:
+            mov bl, byte [rdi]
             
             sub eax, ebx 
 
             ; push qword [ret_addr]
 
-            ret
-;=============================================
-
-
-;=============================================
-;int strlen (const char *str1)                               
-;--------------------------------------------
-;Entry: rdi = addr;
-;Exit: eax = result
-;Destroys: rdi, rcx 
-;=============================================
-m_strlen:   
-            mov al, 0
-            ; mov rdi, rcx 
-            mov rcx, 0xff 
-
-            repne scasb 
-            
-            mov eax, 0xff 
-            sub eax, ecx 
-
             ret 
+;=============================================
 ;=============================================
 
 
