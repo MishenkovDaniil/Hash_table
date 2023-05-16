@@ -107,13 +107,15 @@ size_t hash_crc64 (char *string)
 size_t hash_crc64_opt (char *string)
 {
     size_t size = strlen (string);
-    size = size + sizeof (size_t) - size % sizeof (size_t);
+    size_t shift = size % sizeof (size_t);
     size_t result = 0;
+
+    size = size - shift  + sizeof (size_t);
 
     for (size_t iter = 0; iter < size / 8; ++iter)
     {
         size_t buf = 0;
-        memcpy (&buf, string, sizeof (size_t));
+        memcpy (&buf, string, iter + 1 < size / 8 ? sizeof (size_t) : shift);
 
         result = _mm_crc32_u64 (result, buf);
         string += sizeof (size_t);
