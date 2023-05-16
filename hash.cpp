@@ -9,6 +9,8 @@
 
 extern "C" int m_strcmp (const char *str1, const char *str2);
 
+static const unsigned int POISON_VAL = 0xDEADBEEF;
+
 Hash *Hash_ctor (size_t size, size_t (*hash_func)(char *string), size_t init_list_capacity)
 {
     if (size < 1)
@@ -147,53 +149,49 @@ List_elem *hash_find (Hash *hash, char *string)
         return nullptr;
 
     List_elem *elem = &(insert_list->elems[insert_list->elems[NULL_ELEM].next]);
-    List_elem *result = (List_elem *)0xDEADBEEF;
+    // List_elem *result = (List_elem *)POISON_VAL;
+    
+    // while (1)
+    // {
+    // asm volatile(".intel_syntax noprefix\n\t"
+    //          "test %[data], %[data]\n\t" 
+    //          "je .ret0\n\t" 
+    //          "mov bl, 0xff\n\t" /// rbx = -1;POISON_DATA; 
+    //          "cmp bl, byte [%[data]]\n\t" 
+    //          "je .ret0\n\t" 
+    //          "mov rdi, %[str]\n\t"
+    //          "mov rsi, %[data]\n\t" 
+    //          "call strcmp\n\t"  
+    //          "test eax, eax\n\t"  
+    //          "je .ret_elem\n\t" 
+    //     ".ret0:\n\t"
+    //          "mov %[res], 0\n\t"
+    //          "jmp .end\n\t"
+    //     ".ret_elem:\n\t"    
+    //          "mov %[res], %[elem]\n\t"
+    //     ".end: \n\t"
+    //     ".att_syntax prefix"
+    //         :[res] "=r"(result)
+    //         :[data] "r"((elem->data)), [str] "r" (string), [elem] "r"(elem)
+    //         :"rax", "rbx", "rcx", "rsi", "rdi", "cc", "memory");
 
-    while (1)
+    //     if (result != (List_elem *)POISON_VAL)
+    //     {
+    //         return result;
+    //     }
+
+    //     elem = &(insert_list->elems[elem->next]);
+    // }    
+    
+    while (elem->data != nullptr && elem->data[0] != POISON_DATA)
     {
-    asm volatile(".intel_syntax noprefix\n\t"
-             "test %[data], %[data]\n\t" 
-             "je .ret0\n\t" 
-             "mov rbx, 0xDEADBEEF\n\t" /// rbx = POISON_DATA; 
-             "cmp rbx, %[data]\n\t" 
-             "je .ret0\n\t" 
-             "mov rdi, %[str]\n\t"
-             "mov rsi, %[data]\n\t" 
-             "call strcmp\n\t"  
-             "test eax, eax\n\t"  
-             "je .ret_elem\n\t" 
-             "jmp .new_iter\n\t" 
-        ".ret_elem:\n\t"    
-             "mov %[res], %[elem]\n\t"
-             "jmp .end\n\t"
-        ".ret0:\n\t"
-             "mov %[res], 0\n\t"
-             "jmp .end\n\t"
-        ".new_iter:\n\t" 
-             "mov %[res], 0xDEADBEEF\n\t" 
-         ".end: \n\t"
-        ".att_syntax prefix"
-            :[res] "=r"(result)
-            :[data] "r"((elem->data)), [str] "r" (string), [elem] "r"(elem)
-            :"rax", "rbx", "rcx", "rsi", "rdi", "cc", "memory");
-
-        if (result != (List_elem *)0xDEADBEEF)
+        if (!(strcmp (elem->data, string)))
         {
-            return result;
+            return elem;
         }
 
         elem = &(insert_list->elems[elem->next]);
     }
-    
-    // while (elem->data != nullptr && elem->data != POISON_DATA)
-    // {
-    //     if (!(strcmp (elem->data, string)))
-    //     {
-    //         return elem;
-    //     }
 
-    //     elem = &(insert_list->elems[elem->next]);
-    // }
-
-    // return nullptr;
+    return nullptr;
 }
