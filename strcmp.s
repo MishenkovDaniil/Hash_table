@@ -16,45 +16,12 @@ extern strlen
 ;--------------------------------------------
 m_strcmp: 
             ; pop qword [ret_addr]
-            ; xor rax, rax
-             
-            ; cld 
-            
-            ; mov rcx, rsi
-            ; call strlen 
-
-            ; xor rcx, rcx
-            ; mov ecx, eax
-            ; inc ecx  
 
             mov ecx, 8
-            ; xor eax, eax 
-            ; xor ebx, ebx 
-
-; .next:      
-            ; mov al, byte [rsi]
-            ; cmp al, byte [rdi]
+            
             mov eax, dword [rsi]
             cmp eax, dword [rdi]
             jne .end 
-
-            ; inc rsi 
-            ; inc rdi
-            ; mov qword [rsi_], rsi 
-            ; mov qword [rdi_], rdi 
-            ; mov qword [rax_], rax 
-            ; mov qword [rcx_], rcx 
-
-            ; mov rdx, rsi 
-            ; mov rsi, rdi 
-            ; mov rdi, msg 
-
-            ; call printf
-
-            ; mov rcx, qword [rcx_] 
-            ; mov rax, qword [rax_] 
-            ; mov rsi, qword [rsi_] 
-            ; mov rdi, qword [rdi_] 
 
             add rsi, 4
             add rdi, 4
@@ -104,19 +71,8 @@ m_strcmp:
             mov eax, dword [rsi]
             cmp eax, dword [rdi]
             jne .end
-
-            ; dec ecx 
-            ; test ecx, ecx 
-            ; jne .next 
-            ; loop .next 
-
-            ; dec rsi 
-            ; dec rdi 
-            ; sub rsi, 4
-            ; sub rdi, 4
 
 .end:
-            ; mov bl, byte [rdi]
             mov ebx, dword [rdi]
             
             sub eax, ebx 
