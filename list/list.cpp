@@ -24,7 +24,7 @@ void list_ctor (List *list, int capacity, unsigned int *err)
 
         list->size = INITIAL_SIZE;
 
-        list->elems[NULL_ELEM].data = INITIAL_DATA;
+        // list->elems[NULL_ELEM].data = INITIAL_DATA;
         list->elems[NULL_ELEM].prev = list->elems[NULL_ELEM].next = INITIAL;
 
         list->free = 1;
@@ -37,7 +37,7 @@ void list_ctor (List *list, int capacity, unsigned int *err)
     #endif
 }
 
-int list_insert (List *list, int put_place, list_elem_t value, unsigned int *err)
+int list_insert (List *list, int put_place, char *value, unsigned int *err)
 {
     assert (list);
     assert (err);
@@ -75,7 +75,7 @@ int list_insert (List *list, int put_place, list_elem_t value, unsigned int *err
 
     list->free = list->elems[previous_free].next;
 
-    list->elems[insert_index].data = value;
+    strncpy (list->elems[insert_index].data, value, 32);
     list->elems[insert_index].prev = put_place;
     list->elems[insert_index].next = list->elems[put_place].next;
 
@@ -92,7 +92,7 @@ int list_insert (List *list, int put_place, list_elem_t value, unsigned int *err
 }
 
 // inline function??
-list_elem_t list_remove (List *list, int remove_place, unsigned int *err)
+void list_remove (List *list, int remove_place, unsigned int *err)
 {
 // size capacity size_t
     if (!(remove_place > 0 && remove_place < list->capacity) || (list->elems[remove_place].prev == EMPTY))
@@ -102,7 +102,7 @@ list_elem_t list_remove (List *list, int remove_place, unsigned int *err)
         set_error_bit (err, LIST_INCORRECT_REMOVE_PLACE);
         list_dump (list, err);
 
-        return POISON_DATA;
+        return;
     }
     else if (list->size == 0)
     {
@@ -111,20 +111,20 @@ list_elem_t list_remove (List *list, int remove_place, unsigned int *err)
         set_error_bit (err, LIST_REMOVE_FROM_EMPTY_LIST);
         list_dump (list, err);
 
-        return POISON_DATA;
+        return;
     }
 
     #ifdef DEBUG 
     check_list (list, err);
     #endif
 
-    list_elem_t return_value = list->elems[remove_place].data;
+    // char return_value[32] = list->elems[remove_place].data;
 
     list->elems[list->elems[remove_place].prev].next = list->elems[remove_place].next;
     list->elems[list->elems[remove_place].next].prev = list->elems[remove_place].prev;
 
 
-    list->elems[remove_place].data = POISON_DATA;
+    list->elems[remove_place].data[0] = POISON_DATA;
     list->elems[remove_place].next = list->free;
     list->elems[remove_place].prev = EMPTY;
 
@@ -136,7 +136,7 @@ list_elem_t list_remove (List *list, int remove_place, unsigned int *err)
     check_list (list, err);
     #endif
 
-    return return_value;
+    // return return_valuse;
 }
 
 void list_realloc (List *list, int previous_capacity, unsigned int *err)
@@ -191,7 +191,7 @@ int find_logic_number (List *list, int phys_index, unsigned int *err)
 
         List_elem elem = list->elems[phys_index];
 
-        if (elem.data != POISON_DATA && elem.prev != EMPTY)
+        if (elem.data[0] != POISON_DATA && elem.prev != EMPTY)
         {
             while (elem.prev)
             {
@@ -226,7 +226,7 @@ int find_number (List *list, int phys_index, unsigned int *err)
 
         List_elem elem = list->elems[phys_index];
 
-        if (elem.data != POISON_DATA && elem.prev != EMPTY)
+        if (elem.data[0] != POISON_DATA && elem.prev != EMPTY)
         {
             while (elem.prev)
             {
@@ -245,7 +245,7 @@ int find_number (List *list, int phys_index, unsigned int *err)
     else
     {
         List new_list = {};
-        new_list.elems[NULL_ELEM].data = POISON_DATA;
+        new_list.elems[NULL_ELEM].data[0] = POISON_DATA;
     }
 
     return 0;
@@ -270,7 +270,7 @@ int linearize_list (List *list, unsigned int *err)
 
     while (logic_index <= list->size)
     {
-        temp_elems[logic_index].data = list->elems[phys_index].data;
+        strncpy (temp_elems[logic_index].data, list->elems[phys_index].data, 32);
         temp_elems[logic_index].next = logic_index + 1;
         temp_elems[logic_index].prev = logic_index - 1;
 
@@ -281,13 +281,13 @@ int linearize_list (List *list, unsigned int *err)
     temp_elems[logic_index - 1].next = NULL_ELEM;
     temp_elems[NULL_ELEM].prev = logic_index - 1;
     temp_elems[NULL_ELEM].next = 1;
-    temp_elems[NULL_ELEM].data = POISON_DATA;
+    temp_elems[NULL_ELEM].data[0] = POISON_DATA;
 
     list->free = logic_index;
 
     while (logic_index < list->capacity)
     {
-        temp_elems[logic_index].data = POISON_DATA;
+        temp_elems[logic_index].data[0] = POISON_DATA;
         temp_elems[logic_index].next = logic_index + 1;
         temp_elems[logic_index].prev = EMPTY;
 
@@ -310,7 +310,7 @@ void fill_list (List *list, int start, unsigned int *err)
 {
     for (int index = start; index < list->capacity; index++)
     {
-        list->elems[index].data = POISON_DATA;
+        list->elems[index].data[0] = POISON_DATA;
         list->elems[index].prev = EMPTY;
 
         if (index == list->capacity - 1)
@@ -600,7 +600,7 @@ int debug_list_insert (List *list, int put_place, list_elem_t value, unsigned in
     return list_insert (list, put_place, value, err);
 }
 
-list_elem_t debug_list_remove (List *list, int remove_place, unsigned int *err,
+void debug_list_remove (List *list, int remove_place, unsigned int *err,
                                const int call_line, const char *call_file, const char *call_func)
 {
     init_debug_info (list, call_line, call_file, call_func, __FILE__,

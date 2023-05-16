@@ -8,15 +8,16 @@
 // Fix
 static unsigned int ERRNO = 0;
 
-typedef char *list_elem_t;
+typedef char list_elem_t[32];
 typedef unsigned long long canary_t;
 
 static const size_t INITIAL_SIZE = 0;
 static const size_t INITIAL = 0;
-static const list_elem_t INITIAL_DATA = 0;
+// static const list_elem_t INITIAL_DATA = 0;
 static const int NULL_ELEM = 0;
 static const int EMPTY = -1;
-static const list_elem_t POISON_DATA = (list_elem_t)0xDEADBEEF;
+// static const list_elem_t POISON_DATA = (list_elem_t)0xDEADBEEF;
+static const list_elem_t POISON_DATA = -1;
 static const int POISON = 0xDEADBEEF;
 static const canary_t CANARY = 0xAB8EACAAAB8EACAA;
 static const int CANARY_NUM = 2;
@@ -44,7 +45,7 @@ enum errors
 
 struct List_elem
 {
-    list_elem_t data = 0;
+    list_elem_t data = "";
     int next = 0;
     int prev = 0;
 };
@@ -83,9 +84,9 @@ struct List
 void list_ctor          (List *list, int capacity,                     unsigned int *err = &ERRNO);
 void fill_list          (List *list, int start,                        unsigned int *err);
 void list_dtor          (List *list,                                   unsigned int *err = &ERRNO);
-int list_insert         (List *list, int put_place, list_elem_t value, unsigned int *err = &ERRNO);
+int list_insert         (List *list, int put_place, char *value, unsigned int *err = &ERRNO);
 void check_list          (List *list,                                   unsigned int *err);
-list_elem_t list_remove (List *list, int remove_place,                 unsigned int *err = &ERRNO);
+void list_remove (List *list, int remove_place,                 unsigned int *err = &ERRNO);
 void list_dump          (List *list,                                   unsigned int *err);
 void dump_list_members  (List *list,                                   unsigned int *err);
 void dump_elems         (List *list,                                   unsigned int *err);
@@ -106,7 +107,7 @@ void debug_list_dtor          (List *list, unsigned int *err,
                                const int call_line, const char *call_file, const char *call_func);
 int debug_list_insert         (List *list, int put_place, list_elem_t value, unsigned int *err,
                                const int call_line, const char *call_file, const char *call_func);
-list_elem_t debug_list_remove (List *list, int remove_place, unsigned int *err,
+void debug_list_remove (List *list, int remove_place, unsigned int *err,
                                const int call_line, const char *call_file, const char *call_func);
 int debug_linearize_list      (List *list, unsigned int *err,
                                const int call_line, const char *call_file, const char *call_func);
