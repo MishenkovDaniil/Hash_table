@@ -4,7 +4,7 @@ section .text
 
 global m_strcmp
 
-; extern printf 
+extern printf 
 extern strlen 
 
 ;=============================================
@@ -12,43 +12,114 @@ extern strlen
 ;--------------------------------------------
 ;Entry: rdi = addr: str1, rsi = addr: str2 
 ;Exit: eax = result
-;Destroys: ebx, rcx, rdi, rsi 
+;Destroys: rcx, rdi, rsi 
 ;--------------------------------------------
 m_strcmp: 
             ; pop qword [ret_addr]
+            ; xor rax, rax
+             
+            ; cld 
+            
+            ; mov rcx, rsi
+            ; call strlen 
 
-            xor rax, rax
+            ; xor rcx, rcx
+            ; mov ecx, eax
+            ; inc ecx  
 
-            mov rcx, rdi
-            call strlen 
+            mov ecx, 8
+            ; xor eax, eax 
+            ; xor ebx, ebx 
 
-            xor rcx, rcx
-            mov ecx, eax
-            inc ecx  
-
-            xor eax, eax 
-            xor ebx, ebx 
-
-.next:      
-            mov al, byte [rsi]
-            cmp al, byte [rdi]
+; .next:      
+            ; mov al, byte [rsi]
+            ; cmp al, byte [rdi]
+            mov eax, dword [rsi]
+            cmp eax, dword [rdi]
             jne .end 
 
-            inc rsi 
-            inc rdi
+            ; inc rsi 
+            ; inc rdi
+            ; mov qword [rsi_], rsi 
+            ; mov qword [rdi_], rdi 
+            ; mov qword [rax_], rax 
+            ; mov qword [rcx_], rcx 
 
-            dec ecx 
-            test ecx, ecx 
-            jne .next 
+            ; mov rdx, rsi 
+            ; mov rsi, rdi 
+            ; mov rdi, msg 
+
+            ; call printf
+
+            ; mov rcx, qword [rcx_] 
+            ; mov rax, qword [rax_] 
+            ; mov rsi, qword [rsi_] 
+            ; mov rdi, qword [rdi_] 
+
+            add rsi, 4
+            add rdi, 4
+
+            mov eax, dword [rsi]
+            cmp eax, dword [rdi]
+            jne .end 
+
+            add rsi, 4
+            add rdi, 4
+
+            mov eax, dword [rsi]
+            cmp eax, dword [rdi]
+            jne .end
+            
+            add rsi, 4
+            add rdi, 4
+
+            mov eax, dword [rsi]
+            cmp eax, dword [rdi]
+            jne .end
+
+            add rsi, 4
+            add rdi, 4
+
+            mov eax, dword [rsi]
+            cmp eax, dword [rdi]
+            jne .end
+
+            add rsi, 4
+            add rdi, 4
+
+            mov eax, dword [rsi]
+            cmp eax, dword [rdi]
+            jne .end
+
+            add rsi, 4
+            add rdi, 4
+
+            mov eax, dword [rsi]
+            cmp eax, dword [rdi]
+            jne .end
+            
+            add rsi, 4
+            add rdi, 4
+
+            mov eax, dword [rsi]
+            cmp eax, dword [rdi]
+            jne .end
+
+            ; dec ecx 
+            ; test ecx, ecx 
+            ; jne .next 
             ; loop .next 
 
-            dec rsi 
-            dec rdi 
+            ; dec rsi 
+            ; dec rdi 
+            ; sub rsi, 4
+            ; sub rdi, 4
+
 .end:
-            mov bl, byte [rdi]
+            ; mov bl, byte [rdi]
+            mov ebx, dword [rdi]
             
             sub eax, ebx 
-
             ; push qword [ret_addr]
 
             ret 
@@ -60,4 +131,8 @@ section .data
 
 ret_addr        dq 0
 printing_str    db "hello %s %s", 0
-rsi_            dq 0 
+rsi_            dq 0
+rdi_            dq 0
+rax_            dq 0
+rcx_            dq 0
+msg             db "%s %s", 0
