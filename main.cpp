@@ -29,6 +29,8 @@ static const size_t SEARCH_ITER_NUM    = 5000000;
 static const size_t TIMETEST_HASH_IDX  = 6;
 static const size_t CALC_NUM = 20;
 
+//массив указателей на хэш-функции с нулем в конце +
+
 static const int IS_SORTED = 0;
 static const bool IS_NO_REPEATS = true;
 
@@ -43,6 +45,7 @@ void load_hash_table (Hash_table *hash_table, Parsed_text *parsed_text, bool is_
 void hash_table_work_time (Hash_table *hash_table, Parsed_text *parsed_text, const size_t calc_num, const size_t search_iter_num);
 void print_elem_idxs (FILE *file, size_t elem_num);
 size_t load_hash_mmaps (Hash_table *hash_maps, size_t (**hash_func)(char *));
+void hash_maps_dtor (Hash_table *hash_maps, const size_t hash_func_num);
 
 int main ()
 {   
@@ -76,6 +79,7 @@ void hash_comparison (Parsed_text *parsed_text, FILE *dump_file, size_t (**hash_
     FILE *csv_file = fopen (CSV_FILENAME, "w");
     assert (csv_file);
 
+    /// функция загрузки хэш-таблицы +
     const size_t hash_func_num = load_hash_mmaps (hash_maps, hash_func);
     
     for (size_t cur_hash_func_num = 0; cur_hash_func_num < hash_func_num; ++cur_hash_func_num)
@@ -91,16 +95,21 @@ void hash_comparison (Parsed_text *parsed_text, FILE *dump_file, size_t (**hash_
     hash_table_work_time (hash_maps + TIMETEST_HASH_IDX, parsed_text, CALC_NUM, SEARCH_ITER_NUM);
     #endif 
 
-    for (size_t cur_hash_func_num = 0; cur_hash_func_num < hash_func_num; ++cur_hash_func_num)
-    {
-        hash_table_dtor (hash_maps + cur_hash_func_num);
-    }
+    hash_maps_dtor (hash_maps, hash_func_num);
     
     print_elem_idxs (csv_file, HASH_MMAP_CAPACITY);
     fprintf (csv_file, "\n");
 
     fclose (csv_file);
     free (hash_maps);
+}
+
+void hash_maps_dtor (Hash_table *hash_maps, const size_t hash_func_num)
+{
+    for (size_t cur_hash_func_num = 0; cur_hash_func_num < hash_func_num; ++cur_hash_func_num)
+    {
+        hash_table_dtor (hash_maps + cur_hash_func_num);
+    }
 }
 
 size_t load_hash_mmaps (Hash_table *hash_maps, size_t (**hash_func)(char *))
@@ -144,7 +153,18 @@ void hash_table_work_time (Hash_table *hash_table, Parsed_text *parsed_text, con
         clock_t t1 = clock();
         for (int iter = 0; iter < search_iter_num; ++iter)
         {
+///присваивать valotile +
             volatile List_elem *founded = hash_table_find (hash_table, parsed_text->arr[iter % parsed_text->size].word);
+            // if (founded)
+            // {
+            //     if (strcmp (((List_elem *)founded)->data, parsed_text->arr[iter % parsed_text->size].word))
+            //     {
+            //         printf ("%s %s\n", ((List_elem *)founded)->data, parsed_text->arr[iter % parsed_text->size].word);
+            //         for (;;)
+            //             0;
+            //     }
+            //     printf ("yes");
+            // }
         }
 
         clock_t t2 = clock ();
