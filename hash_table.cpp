@@ -5,7 +5,7 @@
 #include <time.h>
 
 #include "list/list.h"
-#include "hash.h"
+#include "hash_table.h"
 
 //переименовать хэш в хэш-таблицу +
 extern "C" int m_strcmp (const char *str1, const char *str2);
@@ -24,8 +24,13 @@ Hash_table *hash_table_ctor (size_t size, size_t (*hash_func)(char *string), siz
     Hash_table *hash_table = (Hash_table *)calloc (1, sizeof (Hash_table));
     assert (hash_table);
 
-    hash_table->arr = (List **)calloc (size, sizeof (List *));
+    hash_table->arr = (List *)calloc (size, sizeof (List));
     assert (hash_table->arr);
+
+    for (size_t list_num = 0; list_num < size; ++list_num)
+    {
+        list_ctor (hash_table->arr + list_num, init_list_capacity);
+    }
     
     hash_table->size = size;
     hash_table->hash_func = hash_func;
@@ -40,16 +45,16 @@ void hash_table_insert (Hash_table *hash_table, char *string)
 
     size_t hash_value = ((hash_table->hash_func)(string)) % hash_table->size;
 
-    List *insert_list = hash_table->arr[hash_value];
+    List *insert_list = hash_table->arr + hash_value;
     
-    if (!(insert_list))
-    {
-        hash_table->arr[hash_value] = insert_list = (List *)calloc (1, sizeof (List));
+    // if (!(insert_list))
+    // {
+    //     hash_table->arr[hash_value] = insert_list = (List *)calloc (1, sizeof (List));
 
-        list_ctor (insert_list, hash_table->init_list_capacity);
-    }
+    //     list_ctor (&insert_list, hash_table->init_list_capacity);
+    // }
 ///массив списков 
-    list_insert (insert_list, hash_table->arr[hash_value]->size, string);//hash->arr[hash_value]->size
+    list_insert (insert_list, hash_table->arr[hash_value].size, string);//hash->arr[hash_value]->size
 }
 
 void hash_table_dtor (Hash_table *hash_table)
@@ -57,7 +62,7 @@ void hash_table_dtor (Hash_table *hash_table)
     if (!hash_table)
         return;
 
-    clear_hash_table_arr (hash_table->arr, hash_table->size);
+    // clear_hash_table_arr (hash_table->arr, hash_table->size);
     free (hash_table->arr);
     hash_table->arr = nullptr;
 
@@ -96,7 +101,7 @@ void dump_hash_table (Hash_table *hash_table, FILE *dump_file)
                          hash_table, hash_table->arr, hash_table->size, hash_table->init_list_capacity);
 }
 
-void dump_hash_table_lists (List **arr, size_t arr_size, FILE *dump_file, FILE *csv_file)
+void dump_hash_table_lists (List *arr, size_t arr_size, FILE *dump_file, FILE *csv_file)
 {   
     assert (arr && arr_size && dump_file);
 
@@ -106,9 +111,9 @@ void dump_hash_table_lists (List **arr, size_t arr_size, FILE *dump_file, FILE *
 
     for (size_t list_num = 0; list_num < arr_size; ++list_num)
     {
-        List *cur_list = arr[list_num];
+        List *cur_list = arr + list_num;
 
-        if (cur_list)
+        if (cur_list->elems)
         {
             uint err = 0;
             check_list (cur_list, &err);
@@ -124,7 +129,7 @@ void dump_hash_table_lists (List **arr, size_t arr_size, FILE *dump_file, FILE *
         }
         else 
         {
-            fprintf (dump_file, "List %lu: nullptr;\n", list_num);
+            fprintf (dump_file, "List %lu: data = nullptr;\n", list_num);
             fprintf (csv_file, "0,");
         }
         fflush (csv_file);
@@ -145,12 +150,12 @@ List_elem *hash_table_find (Hash_table *hash_table, char *string)
     
     size_t hash_value = ((hash_table->hash_func)(string)) % hash_table->size;
 
-    List *insert_list = hash_table->arr[hash_value];
+    List insert_list = hash_table->arr[hash_value];
 
-    if (!(insert_list && insert_list->elems))
+    if (!(insert_list.elems))
         return nullptr;
 
-    List_elem *elem = &(insert_list->elems[insert_list->elems[NULL_ELEM].next]);
+    List_elem *elem = &(insert_list.elems[insert_list.elems[NULL_ELEM].next]);
     // List_elem *result = (List_elem *)POISON_VAL;
     
     // while (1)
@@ -192,7 +197,7 @@ List_elem *hash_table_find (Hash_table *hash_table, char *string)
             return elem;
         }
 
-        elem = &(insert_list->elems[elem->next]);
+        elem = &(insert_list.elems[elem->next]);
     }
 
     return nullptr;

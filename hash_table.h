@@ -10,7 +10,7 @@
 struct Hash_table 
 {
     size_t size = 0;
-    List **arr = nullptr;
+    List *arr = nullptr;
     size_t (*hash_func)(char *string) = nullptr;
     size_t init_list_capacity = 0;
 };
@@ -26,8 +26,8 @@ void hash_table_dump (Hash_table *hash, FILE *dump_file, FILE *csv_file);
 void hash_table_dtor (Hash_table *hash);
 List_elem *hash_table_find (Hash_table *hash, char *string);
 
-void clear_hash_table_arr (List **arr, size_t size);
+void clear_hash_table_arr (List *arr, size_t size);
 void dump_hash_table (Hash_table *hash, FILE *dump_file);
-void dump_hash_table_lists (List **arr, size_t arr_size, FILE *dump_file, FILE *csv_file);
+void dump_hash_table_lists (List *arr, size_t arr_size, FILE *dump_file, FILE *csv_file);
 
 #endif /* HASH_H */
