@@ -86,14 +86,15 @@ size_t hash_crc64 (char *string)
 
         for (size_t i = 0; i < sizeof (char) * 8; ++i)
         {
-            size_t first_bit = crc >> (sizeof (unsigned int) * 8 - 1);
+            size_t first_bit = crc >> (sizeof (size_t) * 8 - 1);
             size_t first_ch_bit = cur_ch >> (sizeof (char) * 8 - 1);
+
             crc = (crc << 1) + first_ch_bit;
             cur_ch <<= 1;
 
             if (first_bit)
             {
-                crc = inverse_crc (crc, CRC_64_MASK);
+                crc = crc ^ CRC_64_MASK;
             }
         }
         if (!temp)
@@ -104,29 +105,48 @@ size_t hash_crc64 (char *string)
     return crc;
 }
 
-size_t hash_crc64_opt (char *string)
+size_t hash_crc64_char32 (char string[32])
 {
-    size_t size = strlen (string);
-    size_t shift = size % sizeof (size_t);
+    const size_t LEN = 32;
+    const size_t BIT_NUM = 8;
+    size_t crc = 0;
+
+    for (int idx = 0; idx < LEN; ++idx)
+    {
+        char cur_ch = string[idx];
+
+        for (size_t i = 0; i < sizeof (char) * BIT_NUM; ++i)
+        {
+            size_t first_bit = crc >> (sizeof (size_t) * BIT_NUM - 1);
+            size_t first_ch_bit = cur_ch >> (sizeof (char) * BIT_NUM - 1);
+
+            crc = (crc << 1) + first_ch_bit;
+            cur_ch <<= 1;
+
+            if (first_bit)
+            {
+                crc = crc ^ CRC_64_MASK;
+            }
+        }
+    }
+
+    return crc;
+}
+
+size_t hash_crc64_opt (char string[32])
+{
+    const size_t LEN = 32;
+    const size_t ITER_NUM = LEN / sizeof (size_t);
+    
     size_t result = 0;
 
-    size = size - shift  + sizeof (size_t);
-
-    for (size_t iter = 0; iter < size / 8; ++iter)
+    for (size_t iter = 0; iter < ITER_NUM; ++iter)
     {
-        size_t buf = 0;
-        memcpy (&buf, string, iter + 1 < size / 8 ? sizeof (size_t) : shift);
-
-        result = _mm_crc32_u64 (result, buf);
+        result = _mm_crc32_u64 (result, (size_t)string);
         string += sizeof (size_t);
     }
 
     return result;
-}
-
-size_t inverse_crc (size_t crc, const size_t crc_mask)
-{
-    return crc ^ crc_mask;
 }
 
 size_t rotate_right (size_t val)
