@@ -15,10 +15,6 @@ struct Hash_table
     size_t init_list_capacity = 0;
 };
 
-// list **arr выгоднее list *arr
-// 1.изначально аллоцируем меньше памяти (только указатели)
-// 2.проверка указатель на nullptr вместо инициализации всех структур и проверки их размера
-
 void hash_table_ctor (Hash_table *hash_table, size_t size, size_t (*hash_func)(char *), size_t init_list_capacity);
 void hash_table_insert (Hash_table *hash, char *string);
 bool hash_table_exists (Hash_table *hash, char *string);

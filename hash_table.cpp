@@ -7,7 +7,6 @@
 #include "list/list.h"
 #include "hash_table.h"
 
-//переименовать хэш в хэш-таблицу +
 extern "C" int m_strcmp (const char *str1, const char *str2);
 
 static const unsigned int POISON_VAL = 0xDEADBEEF;
@@ -21,8 +20,6 @@ void hash_table_ctor (Hash_table *hash_table, size_t size, size_t (*hash_func)(c
         fprintf (stderr, "Error: incorrect hash size = %lu.\n", size);
         return;
     }
-
-    ///hash - переменная +
 
     hash_table->arr = (List *)calloc (size, sizeof (List));
     assert (hash_table->arr);
@@ -44,15 +41,8 @@ void hash_table_insert (Hash_table *hash_table, char *string)
     size_t hash_value = ((hash_table->hash_func)(string)) % hash_table->size;
 
     List *insert_list = hash_table->arr + hash_value;
-    
-    // if (!(insert_list))
-    // {
-    //     hash_table->arr[hash_value] = insert_list = (List *)calloc (1, sizeof (List));
 
-    //     list_ctor (&insert_list, hash_table->init_list_capacity);
-    // }
-///массив списков +
-    list_insert (insert_list, hash_table->arr[hash_value].size, string);//hash->arr[hash_value]->size
+    list_insert (insert_list, hash_table->arr[hash_value].size, string);
 }
 
 void hash_table_dtor (Hash_table *hash_table)
