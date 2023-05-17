@@ -29,8 +29,6 @@ static const size_t SEARCH_ITER_NUM    = 5000000;
 static const size_t TIMETEST_HASH_IDX  = 6;
 static const size_t CALC_NUM = 20;
 
-//массив указателей на хэш-функции с нулем в конце
-
 static const int IS_SORTED = 0;
 static const bool IS_NO_REPEATS = true;
 
@@ -78,7 +76,6 @@ void hash_comparison (Parsed_text *parsed_text, FILE *dump_file, size_t (**hash_
     FILE *csv_file = fopen (CSV_FILENAME, "w");
     assert (csv_file);
 
-    /// функция загрузки хэш-таблицы +
     const size_t hash_func_num = load_hash_mmaps (hash_maps, hash_func);
     
     for (size_t cur_hash_func_num = 0; cur_hash_func_num < hash_func_num; ++cur_hash_func_num)
@@ -147,18 +144,7 @@ void hash_table_work_time (Hash_table *hash_table, Parsed_text *parsed_text, con
         clock_t t1 = clock();
         for (int iter = 0; iter < search_iter_num; ++iter)
         {
-///присваивать valotile +
             volatile List_elem *founded = hash_table_find (hash_table, parsed_text->arr[iter % parsed_text->size].word);
-            // if (founded)
-            // {
-            //     if (strcmp (((List_elem *)founded)->data, parsed_text->arr[iter % parsed_text->size].word))
-            //     {
-            //         printf ("%s %s\n", ((List_elem *)founded)->data, parsed_text->arr[iter % parsed_text->size].word);
-            //         for (;;)
-            //             0;
-            //     }
-            //     printf ("yes");
-            // }
         }
 
         clock_t t2 = clock ();
