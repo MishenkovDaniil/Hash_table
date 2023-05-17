@@ -12,17 +12,17 @@ extern "C" int m_strcmp (const char *str1, const char *str2);
 
 static const unsigned int POISON_VAL = 0xDEADBEEF;
 
-Hash_table *hash_table_ctor (size_t size, size_t (*hash_func)(char *string), size_t init_list_capacity)
+void hash_table_ctor (Hash_table *hash_table, size_t size, size_t (*hash_func)(char *), size_t init_list_capacity)
 {
+    assert (hash_table);
+
     if (size < 1)
     {
-        printf ("Error: incorrect hash size = %lu.\n", size);
-        return nullptr;
+        fprintf (stderr, "Error: incorrect hash size = %lu.\n", size);
+        return;
     }
 
-    ///hash - переменная 
-    Hash_table *hash_table = (Hash_table *)calloc (1, sizeof (Hash_table));
-    assert (hash_table);
+    ///hash - переменная +
 
     hash_table->arr = (List *)calloc (size, sizeof (List));
     assert (hash_table->arr);
@@ -35,8 +35,6 @@ Hash_table *hash_table_ctor (size_t size, size_t (*hash_func)(char *string), siz
     hash_table->size = size;
     hash_table->hash_func = hash_func;
     hash_table->init_list_capacity = init_list_capacity;
-
-    return hash_table;
 }
 
 void hash_table_insert (Hash_table *hash_table, char *string)
@@ -53,7 +51,7 @@ void hash_table_insert (Hash_table *hash_table, char *string)
 
     //     list_ctor (&insert_list, hash_table->init_list_capacity);
     // }
-///массив списков 
+///массив списков +
     list_insert (insert_list, hash_table->arr[hash_value].size, string);//hash->arr[hash_value]->size
 }
 
@@ -62,24 +60,8 @@ void hash_table_dtor (Hash_table *hash_table)
     if (!hash_table)
         return;
 
-    // clear_hash_table_arr (hash_table->arr, hash_table->size);
     free (hash_table->arr);
     hash_table->arr = nullptr;
-
-    free (hash_table);
-    hash_table = nullptr;
-}
-
-void clear_hash_table_arr (List **arr, size_t size)
-{
-    if (!(arr && size))
-        return;
-
-    for (size_t list_num = 0; list_num < size; ++list_num)
-    {
-        list_dtor (arr[list_num]);
-        arr[list_num] = nullptr;    //
-    }
 }
 
 void hash_table_dump (Hash_table *hash_table, FILE *dump_file, FILE *csv_file)
