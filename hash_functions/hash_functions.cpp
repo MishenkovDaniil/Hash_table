@@ -4,28 +4,28 @@
 
 static const size_t CRC_64_MASK = 0x42F0E1EBA9EA3693; 
 
-size_t hash_ret_1 (char *string)
+size_t hash_ret_1 (const char *string)
 {
     assert (string);
     
     return 1;
 }
 
-size_t hash_first_ch (char *string)
+size_t hash_first_ch (const char *string)
 {
     assert (string);
     
     return *string;
 }
 
-size_t hash_strlen (char *string)
+size_t hash_strlen (const char *string)
 {
     assert (string);
     
     return strlen (string);
 }
 
-size_t hash_ch_sum (char *string)
+size_t hash_ch_sum (const char *string)
 {
     assert (string);
     
@@ -33,14 +33,14 @@ size_t hash_ch_sum (char *string)
 
     while (*string)
     {
-        sum += (size_t)*string;
+        sum += (size_t)(*string);
         ++string;
     }
 
     return sum;
 }
 
-size_t hash_rotr (char *string)
+size_t hash_rotr (const char *string)
 {
     assert (string);
     
@@ -49,7 +49,7 @@ size_t hash_rotr (char *string)
     while (*string)
     {
         sum = rotate_right (sum);
-        sum = sum^(size_t)*string;
+        sum = sum ^ (size_t)(*string);
         
         ++string;
     }
@@ -57,7 +57,7 @@ size_t hash_rotr (char *string)
     return sum;
 }
 
-size_t hash_rotl (char *string)
+size_t hash_rotl (const char *string)
 {
     assert (string);
     
@@ -66,7 +66,7 @@ size_t hash_rotl (char *string)
     while (*string)
     {
         sum = rotate_left (sum);
-        sum = sum^(size_t)*string;
+        sum = sum ^ (size_t)(*string);
         
         ++string;
     }
@@ -74,9 +74,10 @@ size_t hash_rotl (char *string)
     return sum;
 }
 
-size_t hash_crc64 (char *string)
+size_t hash_crc64 (const char *string)
 {
     size_t crc = 0;
+    const size_t BIT_NUM = 8;
 
     char cur_ch = *string++;
 
@@ -84,10 +85,10 @@ size_t hash_crc64 (char *string)
     {
         char temp = cur_ch;
 
-        for (size_t i = 0; i < sizeof (char) * 8; ++i)
+        for (size_t i = 0; i < sizeof (char) * BIT_NUM; ++i)
         {
-            size_t first_bit = crc >> (sizeof (size_t) * 8 - 1);
-            size_t first_ch_bit = cur_ch >> (sizeof (char) * 8 - 1);
+            size_t first_bit = crc >> (sizeof (size_t) * BIT_NUM - 1);
+            size_t first_ch_bit = cur_ch >> (sizeof (char) * BIT_NUM - 1);
 
             crc = (crc << 1) + first_ch_bit;
             cur_ch <<= 1;
@@ -105,7 +106,7 @@ size_t hash_crc64 (char *string)
     return crc;
 }
 
-size_t hash_crc64_char32 (char string[32])
+size_t hash_crc64_char32 (const char string[32])
 {
     const size_t LEN = 32;
     const size_t BIT_NUM = 8;
@@ -133,7 +134,7 @@ size_t hash_crc64_char32 (char string[32])
     return crc;
 }
 
-size_t hash_crc64_opt (char string[32])
+size_t hash_crc64_opt (const char string[32])
 {
     const size_t LEN = 32;
     const size_t ITER_NUM = LEN / sizeof (size_t);
@@ -164,4 +165,5 @@ size_t rotate_left (size_t val)
 
     return rotated_val;
 }
+
 
