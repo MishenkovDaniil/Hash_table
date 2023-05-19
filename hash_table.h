@@ -11,11 +11,11 @@ struct Hash_table
 {
     size_t size = 0;
     List *arr = nullptr;
-    size_t (*hash_func)(char *) = nullptr;
+    size_t (*hash_func)(const char *) = nullptr;
     size_t init_list_capacity = 0;
 };
 
-void hash_table_ctor (Hash_table *hash_table, size_t size, size_t (*hash_func)(char *), size_t init_list_capacity);
+void hash_table_ctor (Hash_table *hash_table, size_t size, size_t (*hash_func)(const char *), size_t init_list_capacity);
 void hash_table_insert (Hash_table *hash, char *string);
 bool hash_table_exists (Hash_table *hash, char *string);
 void hash_table_dump (Hash_table *hash, FILE *dump_file, FILE *csv_file);
