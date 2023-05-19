@@ -22,28 +22,27 @@ static const char *CSV_FILENAME   = "data/histograms/hash.csv";
 static const char *TEXT_FILENAME  = "data/texts/parsed_text.txt";
 static const char *DUMP_FILENAME  = "data/dump_data/hash_dump";
 
-static const size_t MAX_HASH_FUNCTIONS_NUM = 10;
 static const size_t HASH_MMAP_CAPACITY = 4999;
 static const size_t INIT_LIST_CAPACITY = 100;
 static const size_t SEARCH_ITER_NUM    = 5000000;
 static const size_t TIMETEST_HASH_IDX  = 6;
 static const size_t CALC_NUM = 20;
 
-
 static const int IS_SORTED = 0;
 static const bool IS_NO_REPEATS = true;
 
-size_t (*hash_func[])(char *) = {hash_ret_1,  hash_first_ch, 
-                                 hash_strlen, hash_ch_sum, 
-                                 hash_rotr,   hash_rotl,
-                                 hash_crc64,  nullptr};
+static size_t (*hash_func[])(const char *) = {hash_ret_1,  hash_first_ch, 
+                                       hash_strlen, hash_ch_sum, 
+                                       hash_rotr,   hash_rotl,
+                                       hash_crc64_opt,  nullptr};
+static const int HASH_FUNCTIONS_NUM = sizeof (hash_func) / sizeof (*hash_func);
 
 void sort_text (Parsed_text *parsed_text, FILE *parsed_text_file);
-void hash_comparison (Parsed_text *parsed_text, FILE *dump_file, size_t (**hash_func)(char *), const bool is_no_repeats = false);
+void hash_comparison (Parsed_text *parsed_text, FILE *dump_file, size_t (**hash_func)(const char *), const bool is_no_repeats = false);
 void load_hash_table (Hash_table *hash_table, Parsed_text *parsed_text, bool is_no_repeats);
 void hash_table_work_time (Hash_table *hash_table, Parsed_text *parsed_text, const size_t calc_num, const size_t search_iter_num);
 void print_elem_idxs (FILE *file, size_t elem_num);
-size_t load_hash_mmaps (Hash_table *hash_maps, size_t (**hash_func)(char *));
+size_t load_hash_maps (Hash_table *hash_maps, size_t (**hash_func)(const char *));
 void hash_maps_dtor (Hash_table *hash_maps, const size_t hash_func_num);
 
 int main ()
@@ -68,24 +67,23 @@ int main ()
     return 0;
 }
 
-void hash_comparison (Parsed_text *parsed_text, FILE *dump_file, size_t (**hash_func)(char *), const bool is_no_repeats)
+void hash_comparison (Parsed_text *parsed_text, FILE *dump_file, size_t (**hash_func)(const char *), const bool is_no_repeats)
 {
     assert (parsed_text && dump_file);
     
-    Hash_table *hash_maps = (Hash_table *)calloc (MAX_HASH_FUNCTIONS_NUM, sizeof (Hash_table));
-    assert (hash_maps);
+    Hash_table hash_maps[HASH_FUNCTIONS_NUM] = {};
 
     FILE *csv_file = fopen (CSV_FILENAME, "w");
     assert (csv_file);
 
-    const size_t hash_func_num = load_hash_mmaps (hash_maps, hash_func);
+    const size_t hash_func_num = load_hash_maps (hash_maps, hash_func);
     
     for (size_t cur_hash_func_num = 0; cur_hash_func_num < hash_func_num; ++cur_hash_func_num)
     {
         load_hash_table (hash_maps + cur_hash_func_num, parsed_text, is_no_repeats);
         
         #ifdef HASH_DEBUG
-        hash_table_dump (hash_maps[cur_hash_func_num], dump_file, csv_file);
+        hash_table_dump (hash_maps + cur_hash_func_num, dump_file, csv_file);
         #endif 
     }
 
@@ -110,7 +108,7 @@ void hash_maps_dtor (Hash_table *hash_maps, const size_t hash_func_num)
     }
 }
 
-size_t load_hash_mmaps (Hash_table *hash_maps, size_t (**hash_func)(char *))
+size_t load_hash_maps (Hash_table *hash_maps, size_t (**hash_func)(const char *))
 {
     assert (hash_maps && hash_func);
 
@@ -137,7 +135,7 @@ void load_hash_table (Hash_table *hash_table, Parsed_text *parsed_text, bool is_
             hash_table_insert (hash_table, parsed_text->arr[iter].word);
         }
     }
-}
+} 
 
 void hash_table_work_time (Hash_table *hash_table, Parsed_text *parsed_text, const size_t calc_num, const size_t search_iter_num)
 {
@@ -150,18 +148,8 @@ void hash_table_work_time (Hash_table *hash_table, Parsed_text *parsed_text, con
     {   
         clock_t t1 = clock();
         for (int iter = 0; iter < search_iter_num; ++iter)
-        {
-            volatile List_elem *founded = hash_table_find (hash_table, parsed_text->arr[iter % parsed_text->size].word);
-            // if (founded)
-            // {
-            //     if (strcmp (((List_elem *)founded)->data, parsed_text->arr[iter % parsed_text->size].word))
-            //     {
-            //         printf ("%s %s\n", ((List_elem *)founded)->data, parsed_text->arr[iter % parsed_text->size].word);
-            //         for (;;)
-            //             0;
-            //     }
-            //     printf ("yes");
-            // }
+        { 
+            volatile List_elem *found = hash_table_find (hash_table, parsed_text->arr[iter % parsed_text->size].word);
         }
 
         clock_t t2 = clock ();
