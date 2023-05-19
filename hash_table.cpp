@@ -7,11 +7,12 @@
 #include "list/list.h"
 #include "hash_table.h"
 
-extern "C" int m_strcmp (const char *str1, const char *str2);
+extern "C" long m_strcmp (const char *str1, const char *str2);
+static inline __attribute__((always_inline)) long mm_strcmp (char string1[32], char string2[32]);
 
 static const unsigned int POISON_VAL = 0xDEADBEEF;
 
-void hash_table_ctor (Hash_table *hash_table, size_t size, size_t (*hash_func)(char *), size_t init_list_capacity)
+void hash_table_ctor (Hash_table *hash_table, size_t size, size_t (*hash_func)(const char *), size_t init_list_capacity)
 {
     assert (hash_table);
 
@@ -128,43 +129,10 @@ List_elem *hash_table_find (Hash_table *hash_table, char *string)
         return nullptr;
 
     List_elem *elem = &(insert_list.elems[insert_list.elems[NULL_ELEM].next]);
-    // List_elem *result = (List_elem *)POISON_VAL;
-    
-    // while (1)
-    // {
-    // asm volatile(".intel_syntax noprefix\n\t"
-    //          "test %[data], %[data]\n\t" 
-    //          "je .ret0\n\t" 
-    //          "mov bl, 0xff\n\t" /// rbx = -1;POISON_DATA; 
-    //          "cmp bl, byte [%[data]]\n\t" 
-    //          "je .ret0\n\t" 
-    //          "mov rdi, %[str]\n\t"
-    //          "mov rsi, %[data]\n\t" 
-    //          "call strcmp\n\t"  
-    //          "test eax, eax\n\t"  
-    //          "je .ret_elem\n\t" 
-    //     ".ret0:\n\t"
-    //          "mov %[res], 0\n\t"
-    //          "jmp .end\n\t"
-    //     ".ret_elem:\n\t"    
-    //          "mov %[res], %[elem]\n\t"
-    //     ".end: \n\t"
-    //     ".att_syntax prefix"
-    //         :[res] "=r"(result)
-    //         :[data] "r"((elem->data)), [str] "r" (string), [elem] "r"(elem)
-    //         :"rax", "rbx", "rcx", "rsi", "rdi", "cc", "memory");
 
-    //     if (result != (List_elem *)POISON_VAL)
-    //     {
-    //         return result;
-    //     }
-
-    //     elem = &(insert_list->elems[elem->next]);
-    // }    
-    
-    while (elem->data != nullptr && elem->data[0] != POISON_DATA)
+    while (elem->data[0] != POISON_DATA)
     {
-        if (!(strcmp (elem->data, string)))
+        if (!(m_strcmp(elem->data, string)))
         {
             return elem;
         }
