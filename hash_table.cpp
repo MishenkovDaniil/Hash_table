@@ -8,7 +8,6 @@
 #include "hash_table.h"
 
 extern "C" long m_strcmp (const char *str1, const char *str2);
-static inline __attribute__((always_inline)) long mm_strcmp (char string1[32], char string2[32]);
 
 static const unsigned int POISON_VAL = 0xDEADBEEF;
 
@@ -132,7 +131,49 @@ List_elem *hash_table_find (Hash_table *hash_table, char *string)
 
     while (elem->data[0] != POISON_DATA)
     {
-        if (!(m_strcmp(elem->data, string)))
+        long temp;
+        /// __asm       (".intel_syntax noprefix\n\t"
+        ///             "mov %[temp], qword [%[data]]\n\t"
+        ///             "sub %[temp], qword [%[str]]\n\t"
+        ///             "jne .end_%=\n\t"
+        ///             "mov %[temp], qword [%[data] + 8]\n\t"
+        ///             "sub %[temp], qword [%[str] + 8]\n\t"
+        ///             "jne .end_%=\n\t"
+        ///             "mov %[temp], qword [%[data] + 16]\n\t"
+        ///             "sub %[temp], qword [%[str] + 16]\n\t"
+        ///             "jne .end_%=\n\t"
+        ///             "mov %[temp], qword [%[data] + 24]\n\t"
+        ///             "sub %[temp], qword [%[str] + 24]\n\t"
+        ///         ".end_%=:\n\t"
+        ///             ".att_syntax prefix"
+        ///             : [temp] "=r" (temp)
+        ///             : [str] "r" (string), [data] "r" (elem->data)
+        ///             :
+        ///             );
+         __asm      (
+                    "movq (%1), %0\n\t"
+                    "subq (%2), %0\n\t"
+                    "jne .end_%=\n\t"
+                    "movq (%1), %0\n\t"
+                    "subq (%2), %0\n\t"
+                    "jne .end_%=\n\t"
+                    "movq (%1), %0\n\t"
+                    "subq (%2), %0\n\t"
+                    "jne .end_%=\n\t"
+                    "movq (%1), %0\n\t"
+                    "subq (%2), %0\n\t"
+                ".end_%=:\n\t"
+                    : "=r" (temp)
+                    : "r" (string), "r" (elem->data)
+                    :
+                    );
+
+        
+        /// if (!(m_strcmp(elem->data, string)))
+        /// {
+        ///     return elem;
+        /// }
+        if (!temp)
         {
             return elem;
         }
