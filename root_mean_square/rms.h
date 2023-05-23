@@ -2,6 +2,7 @@
 #define RMS_H
 
 #include <stdio.h>
+#include <math.h>
 
 double rms (double *values, size_t val_num, double avg);
 
