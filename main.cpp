@@ -34,7 +34,7 @@ static const bool IS_NO_REPEATS = true;
 static size_t (*hash_func[])(const char *) = {hash_ret_1,  hash_first_ch, 
                                        hash_strlen, hash_ch_sum, 
                                        hash_rotr,   hash_rotl,
-                                       hash_crc64_opt,  nullptr};
+                                       hash_crc64_opt,  nullptr};               /// hash_chc64 instead of hash_crc64_opt in no optimization case 
 static const int HASH_FUNCTIONS_NUM = sizeof (hash_func) / sizeof (*hash_func);
 
 void sort_text (Parsed_text *parsed_text, FILE *parsed_text_file);
@@ -52,13 +52,13 @@ int main ()
     FILE *dump_file = fopen (DUMP_FILENAME, "w");
     assert (dump_file);
 
-    // // if (!IS_SORTED)
-    // // {
-    // //     FILE *parsed_text_file = fopen ("data/texts/parsed_text.txt", "w");
-    // //     assert (parsed_text_file);
-    // //     sort_text (parsed_text, parsed_text_file);
-    // //     fclose (parsed_text_file);
-    // // }
+    if (!IS_SORTED)
+    {
+        FILE *parsed_text_file = fopen ("data/texts/parsed_text.txt", "w");
+        assert (parsed_text_file);
+        sort_text (parsed_text, parsed_text_file);
+        fclose (parsed_text_file);
+    }
 
     hash_comparison (parsed_text, dump_file, hash_func, IS_NO_REPEATS);
 
@@ -97,7 +97,6 @@ void hash_comparison (Parsed_text *parsed_text, FILE *dump_file, size_t (**hash_
     fprintf (csv_file, "\n");
 
     fclose (csv_file);
-    free (hash_maps);
 }
 
 void hash_maps_dtor (Hash_table *hash_maps, const size_t hash_func_num)
