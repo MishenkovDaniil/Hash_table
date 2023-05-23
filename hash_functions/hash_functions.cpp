@@ -106,7 +106,7 @@ size_t hash_crc64 (const char *string)
     return crc;
 }
 
-size_t hash_crc64_char32 (const char string[32])
+size_t hash_crc64_char32 (const char string[32])        /// works worse than hash_crc64 () because of treating a lot of zero values
 {
     const size_t LEN = 32;
     const size_t BIT_NUM = 8;
@@ -132,7 +132,7 @@ size_t hash_crc64_char32 (const char string[32])
     }
 
     return crc;
-}
+}   
 
 size_t hash_crc64_opt (const char string[32])
 {
@@ -165,5 +165,4 @@ size_t rotate_left (size_t val)
 
     return rotated_val;
 }
-
 
